@@ -1,0 +1,12 @@
+{
+  "timestamp": "2025-02-11T11:23:19.648Z",
+  "tokenAddress": "9pi4iFACRCuGPeAD1EWyGCA82rwwmNpLUVgaBc5hchWg",
+  "error": {
+    "message": "ETELEGRAM: 400 Bad Request: chat_id is empty",
+    "stack": "Error: ETELEGRAM: 400 Bad Request: chat_id is empty\n    at C:\\Users\\be\\Desktop\\TrakorAi0\\TrakorAi\\node_modules\\node-telegram-bot-api\\src\\telegram.js:316:15\n    at tryCatcher (C:\\Users\\be\\Desktop\\TrakorAi0\\TrakorAi\\node_modules\\bluebird\\js\\release\\util.js:16:23)\n    at Promise._settlePromiseFromHandler (C:\\Users\\be\\Desktop\\TrakorAi0\\TrakorAi\\node_modules\\bluebird\\js\\release\\promise.js:547:31)\n    at Promise._settlePromise (C:\\Users\\be\\Desktop\\TrakorAi0\\TrakorAi\\node_modules\\bluebird\\js\\release\\promise.js:604:18)\n    at Promise._settlePromise0 (C:\\Users\\be\\Desktop\\TrakorAi0\\TrakorAi\\node_modules\\bluebird\\js\\release\\promise.js:649:10)\n    at Promise._settlePromises (C:\\Users\\be\\Desktop\\TrakorAi0\\TrakorAi\\node_modules\\bluebird\\js\\release\\promise.js:729:18)\n    at _drainQueueStep (C:\\Users\\be\\Desktop\\TrakorAi0\\TrakorAi\\node_modules\\bluebird\\js\\release\\async.js:93:12)\n    at _drainQueue (C:\\Users\\be\\Desktop\\TrakorAi0\\TrakorAi\\node_modules\\bluebird\\js\\release\\async.js:86:9)\n    at Async._drainQueues (C:\\Users\\be\\Desktop\\TrakorAi0\\TrakorAi\\node_modules\\bluebird\\js\\release\\async.js:102:5)\n    at Async.drainQueues [as _onImmediate] (C:\\Users\\be\\Desktop\\TrakorAi0\\TrakorAi\\node_modules\\bluebird\\js\\release\\async.js:15:14)\n    at process.processImmediate (node:internal/timers:483:21)",
+    "details": {
+      "code": "ETELEGRAM",
+      "message": "ETELEGRAM: 400 Bad Request: chat_id is empty"
+    }
+  }
+}

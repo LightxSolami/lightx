@@ -1,0 +1,1658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LightX - Token Chart</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #0a0a1a;
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+            color: white;
+            height: 100vh;
+        }
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+        .star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 1s infinite;
+        }
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.2; }
+            50% { opacity: 1; }
+        }
+        .chart-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            z-index: 2;
+        }
+        .header {
+            position: fixed;
+            top: 21px;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: rgba(16, 16, 32, 0.95);
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(108, 99, 255, 0.2);
+            backdrop-filter: blur(10px);
+            height: 60px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .token-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: rgba(108, 99, 255, 0.1);
+            padding: 8px 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(108, 99, 255, 0.2);
+            flex-wrap: wrap;
+        }
+        .token-image {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 2px solid rgba(108, 99, 255, 0.3);
+        }
+        .token-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .token-details {
+            color: white;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .token-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin: 0;
+        }
+        .token-symbol {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        .token-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-left: auto;
+        }
+        .trade-button-group {
+            display: flex;
+            align-items: center;
+            background: rgba(108, 99, 255, 0.1);
+            border: 1px solid rgba(108, 99, 255, 0.2);
+            border-radius: 8px;
+            overflow: hidden;
+            margin-left: 10px;
+        }
+        .token-sol-input input {
+            background: transparent;
+            border: none;
+            color: white;
+            width: 80px;
+            font-size: 0.9rem;
+            outline: none;
+            text-align: right;
+        }
+        .token-sol-input input::-webkit-inner-spin-button,
+        .token-sol-input input::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .token-sol-input img {
+            width: 16px;
+            height: 16px;
+        }
+        .token-btn {
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border: none;
+            color: white;
+            position: relative;
+        }
+        .token-btn.buy {
+            background: #00f2ff;
+            border: 1px solid rgba(0, 242, 255, 0.3);
+        }
+        .token-btn.buy:hover {
+            background: rgba(0, 242, 255, 0.8);
+            transform: translateY(-1px);
+        }
+        .token-btn.sell {
+            background: #ff6b6b;
+            border: 1px solid rgba(255, 107, 107, 0.3);
+        }
+        .token-btn.sell:hover {
+            background: rgba(255, 107, 107, 0.8);
+            transform: translateY(-1px);
+        }
+        .token-btn i {
+            font-size: 0.8rem;
+        }
+        .token-btn .loading-spinner {
+            display: none;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s linear infinite;
+            margin-left: 6px;
+        }
+        .token-btn.loading .loading-spinner {
+            display: inline-block;
+        }
+        .token-btn.loading {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+        .chart-layout {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: calc(100vh - 60px);
+            position: relative;
+            margin-top: 60px;
+            overflow: hidden;
+        }
+        
+        .chart-main {
+            flex: 1;
+            height: calc(100% - 150px);
+            position: relative;
+            overflow: hidden;
+            background: rgba(16, 16, 32, 0.95);
+        }
+
+        .chart-frame {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        iframe {
+            width: 100% !important;
+            height: 100% !important;
+            border: none !important;
+            background: transparent !important;
+            position: relative !important;
+            overflow: hidden !important;
+        }
+
+        .market-info-section {
+            width: 100%;
+            height: 150px;
+            background: rgba(16, 16, 32, 0.95);
+            border-top: 1px solid rgba(108, 99, 255, 0.2);
+            padding: 15px;
+            overflow-x: auto;
+            display: flex;
+            flex-direction: row;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+        }
+
+        .market-info-grid {
+            display: flex;
+            gap: 15px;
+            margin: 0;
+            padding: 0;
+            background: transparent;
+            position: relative;
+            top: 0;
+            z-index: 1;
+        }
+
+        .market-info-item {
+            min-width: 200px;
+            background: rgba(108, 99, 255, 0.05);
+            border: 1px solid rgba(108, 99, 255, 0.1);
+            border-radius: 12px;
+            padding: 15px;
+            transition: all 0.3s ease;
+            flex: 1;
+        }
+
+        .market-info-item:hover {
+            background: rgba(108, 99, 255, 0.1);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(108, 99, 255, 0.1);
+        }
+
+        .market-info-label {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 8px;
+        }
+
+        .market-info-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: white;
+        }
+
+        .trades-section {
+            display: flex;
+            gap: 15px;
+            margin-left: 15px;
+        }
+
+        .trades-column {
+            min-width: 300px;
+            background: rgba(108, 99, 255, 0.05);
+            border: 1px solid rgba(108, 99, 255, 0.1);
+            border-radius: 12px;
+            padding: 15px;
+            height: 100%;
+            overflow-y: auto;
+        }
+
+        .trades-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(108, 99, 255, 0.2);
+        }
+
+        .trades-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: white;
+            margin: 0;
+        }
+
+        .trades-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .trade-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px;
+            background: rgba(108, 99, 255, 0.05);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .trade-item:hover {
+            background: rgba(108, 99, 255, 0.1);
+        }
+
+        .trade-price {
+            font-weight: 600;
+            color: white;
+        }
+
+        .trade-amount {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+        }
+
+        .trade-time {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.8rem;
+        }
+
+        .buy-trade {
+            border-left: 3px solid #00f2ff;
+        }
+
+        .sell-trade {
+            border-left: 3px solid #ff6b6b;
+        }
+
+        @media (max-width: 1200px) {
+            .market-info-item {
+                min-width: 180px;
+            }
+            
+            .trades-column {
+                min-width: 250px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .market-info-section {
+                height: auto;
+                max-height: 300px;
+                flex-direction: column;
+                position: relative;
+                border-top: none;
+                border-bottom: 1px solid rgba(108, 99, 255, 0.2);
+                padding: 10px;
+            }
+
+            .market-info-grid {
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+
+            .market-info-item {
+                min-width: calc(50% - 5px);
+                padding: 10px;
+            }
+
+            .trades-section {
+                margin-left: 0;
+                margin-top: 10px;
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .trades-column {
+                min-width: 100%;
+                height: 150px;
+                padding: 10px;
+            }
+
+            .chart-main {
+                height: calc(100vh - 60px - 300px);
+            }
+
+            .header {
+                height: auto;
+                padding: 8px;
+                gap: 8px;
+            }
+
+            .header-left {
+                width: 100%;
+                justify-content: space-between;
+                flex-wrap: wrap;
+            }
+
+            .time-selector {
+                margin-left: 0;
+                margin-top: 8px;
+                width: 100%;
+                justify-content: center;
+                flex-wrap: wrap;
+                gap: 3px;
+            }
+
+            .time-btn {
+                padding: 4px 8px;
+                font-size: 11px;
+                flex: 1;
+                min-width: 45px;
+            }
+
+            .token-info {
+                padding: 6px 12px;
+                margin-left: auto;
+            }
+
+            .token-name {
+                font-size: 0.9rem;
+            }
+
+            .token-symbol {
+                font-size: 0.8rem;
+            }
+
+            .logo-title {
+                font-size: 1rem;
+            }
+
+            .logo-subtitle {
+                font-size: 0.7rem;
+            }
+
+            .market-info-label {
+                font-size: 0.75rem;
+            }
+
+            .market-info-value {
+                font-size: 0.9rem;
+            }
+
+            .trades-title {
+                font-size: 0.9rem;
+            }
+
+            .trade-item {
+                padding: 6px;
+            }
+
+            .trade-price {
+                font-size: 0.8rem;
+            }
+
+            .trade-amount {
+                font-size: 0.8rem;
+            }
+
+            .trade-time {
+                font-size: 0.7rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .market-info-item {
+                min-width: 100%;
+            }
+
+            .market-info-section {
+                max-height: 400px;
+            }
+
+            .chart-main {
+                height: calc(100vh - 60px - 400px);
+            }
+
+            .token-info {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .logo-section {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        /* Custom time selector */
+        .time-selector {
+            display: flex;
+            gap: 5px;
+            background: rgba(108, 99, 255, 0.1);
+            padding: 5px;
+            border-radius: 8px;
+            border: 1px solid rgba(108, 99, 255, 0.2);
+            backdrop-filter: blur(10px);
+            margin-left: auto;
+        }
+
+        .time-btn {
+            background: transparent;
+            border: none;
+            color: rgba(255, 255, 255, 0.7);
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .time-btn:hover {
+            background: rgba(108, 99, 255, 0.2);
+            color: white;
+        }
+
+        .time-btn.active {
+            background: rgba(108, 99, 255, 0.3);
+            color: white;
+        }
+
+        /* Hide all DexScreener elements except chart */
+        iframe #__next > div:not(:nth-child(2)),
+        iframe header,
+        iframe footer,
+        iframe .header,
+        iframe .footer,
+        iframe .controls,
+        iframe .price-display,
+        iframe .branding,
+        iframe .logo,
+        iframe .powered-by,
+        iframe .dex-screener,
+        iframe .chart-header,
+        iframe .chart-footer,
+        iframe .chart-sidebar,
+        iframe .chart-info,
+        iframe .tradingview-widget-copyright {
+            display: none !important;
+        }
+
+        /* Style the chart container */
+        iframe {
+            width: 100% !important;
+            height: 100% !important;
+            border: none !important;
+            background: transparent !important;
+            position: relative !important;
+            overflow: hidden !important;
+        }
+
+        iframe .tradingview-widget-container {
+            height: 100% !important;
+            background: transparent !important;
+            position: relative !important;
+        }
+
+        /* Ensure chart is fully visible */
+        iframe #__next {
+            height: 100% !important;
+            overflow: hidden !important;
+            position: relative !important;
+        }
+
+        /* Ensure chart container is scrollable */
+        iframe .tradingview-widget-container {
+            height: 100% !important;
+            overflow: hidden !important;
+            position: relative !important;
+        }
+
+        .token-stats {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: rgba(108, 99, 255, 0.05);
+            border-radius: 8px;
+            border: 1px solid rgba(108, 99, 255, 0.1);
+        }
+        
+        .stat-label {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+        }
+        
+        .stat-value {
+            color: white;
+            font-weight: 600;
+        }
+        
+        .liquidity-bar {
+            height: 4px;
+            background: rgba(108, 99, 255, 0.1);
+            border-radius: 2px;
+            margin-top: 5px;
+            overflow: hidden;
+        }
+        
+        .liquidity-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #6c63ff, #00f2ff);
+            border-radius: 2px;
+            transition: width 0.3s ease;
+        }
+        
+        @media (max-width: 1200px) {
+            .chart-sidebar {
+                width: 250px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .chart-layout {
+                flex-direction: column;
+            }
+            
+            .chart-sidebar {
+                width: 100%;
+                height: auto;
+                max-height: 300px;
+            }
+            
+            .chart-main {
+                margin-top: 40px;
+            }
+            
+            .chart-overlay {
+                top: auto;
+                bottom: 10px;
+                right: 10px;
+                left: 10px;
+                flex-wrap: wrap;
+                justify-content: center;
+                margin-top: 0;
+            }
+            
+            .price-display {
+                top: 60px;
+                left: 10px;
+                right: 10px;
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .header {
+                height: auto;
+                padding: 10px;
+            }
+
+            .header-left {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .time-selector {
+                margin-left: 0;
+                margin-top: 10px;
+                width: 100%;
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+
+            .time-btn {
+                padding: 4px 8px;
+                font-size: 11px;
+            }
+
+            .token-info {
+                padding: 6px 12px;
+            }
+
+            .token-name {
+                font-size: 1rem;
+            }
+
+            .token-symbol {
+                font-size: 0.8rem;
+            }
+        }
+        .loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 1.2rem;
+            text-align: center;
+            z-index: 1000;
+            background: rgba(16, 16, 32, 0.9);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(108, 99, 255, 0.2);
+        }
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(108, 99, 255, 0.1);
+            border-left-color: #6c63ff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .chart-controls {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            gap: 10px;
+            background: rgba(16, 16, 32, 0.95);
+            padding: 10px;
+            border-radius: 12px;
+            border: 1px solid rgba(108, 99, 255, 0.2);
+            backdrop-filter: blur(10px);
+            align-items: center;
+        }
+        .chart-sol-input {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(108, 99, 255, 0.1);
+            padding: 6px 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(108, 99, 255, 0.2);
+        }
+        .chart-sol-input input {
+            background: transparent;
+            border: none;
+            color: white;
+            width: 80px;
+            font-size: 0.9rem;
+            outline: none;
+            text-align: right;
+        }
+        .chart-sol-input input::-webkit-inner-spin-button,
+        .chart-sol-input input::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .chart-sol-input img {
+            width: 16px;
+            height: 16px;
+        }
+        .chart-btn.buy {
+            background: rgba(0, 242, 255, 0.2);
+            border-color: rgba(0, 242, 255, 0.3);
+        }
+        .chart-btn.buy:hover {
+            background: rgba(0, 242, 255, 0.3);
+            box-shadow: 0 4px 12px rgba(0, 242, 255, 0.2);
+        }
+        .chart-btn.sell {
+            background: rgba(255, 107, 107, 0.2);
+            border-color: rgba(255, 107, 107, 0.3);
+        }
+        .chart-btn.sell:hover {
+            background: rgba(255, 107, 107, 0.3);
+            box-shadow: 0 4px 12px rgba(255, 107, 107, 0.2);
+        }
+        .chart-btn.solscan {
+            background: rgba(255, 165, 0, 0.2);
+            border-color: rgba(255, 165, 0, 0.3);
+        }
+        .chart-btn.solscan:hover {
+            background: rgba(255, 165, 0, 0.3);
+            box-shadow: 0 4px 12px rgba(255, 165, 0, 0.2);
+        }
+        .chart-btn.solscan.active {
+            background: rgba(255, 165, 0, 0.4);
+            border-color: rgba(255, 165, 0, 0.5);
+            box-shadow: 0 0 15px rgba(255, 165, 0, 0.3);
+        }
+        .chart-btn .badge {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            margin-left: 4px;
+        }
+        @media (max-width: 768px) {
+            .chart-controls {
+                bottom: 10px;
+                right: 10px;
+                left: 10px;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .chart-btn {
+                padding: 6px 12px;
+                font-size: 0.8rem;
+            }
+        }
+
+        /* Hide DexScreener's time interval selector */
+        iframe .time-interval-selector,
+        iframe .time-selector,
+        iframe .interval-selector,
+        iframe .timeframe-selector {
+            display: none !important;
+        }
+
+        /* Ensure chart controls are visible */
+        iframe .chart-controls,
+        iframe .tradingview-widget-container {
+            position: relative !important;
+            z-index: 1000 !important;
+        }
+
+        /* Center time display */
+        iframe .time-display,
+        iframe .time-label,
+        iframe .time-value {
+            position: absolute !important;
+            top: 70px !important;
+            left: 50% !important;
+            transform: translateX(-50%) !important;
+            background: rgba(16, 16, 32, 0.95) !important;
+            padding: 8px 16px !important;
+            border-radius: 8px !important;
+            border: 1px solid rgba(108, 99, 255, 0.2) !important;
+            color: white !important;
+            font-size: 14px !important;
+            z-index: 1000 !important;
+            backdrop-filter: blur(10px) !important;
+        }
+
+        /* Hide DexScreener branding */
+        iframe .powered-by,
+        iframe .dex-screener,
+        iframe .dex-screener-logo,
+        iframe .dex-screener-text,
+        iframe .branding,
+        iframe .logo {
+            display: none !important;
+        }
+
+        .chart-info-panel {
+            position: absolute;
+            top: 70px;
+            right: 20px;
+            background: rgba(16, 16, 32, 0.95);
+            border: 1px solid rgba(108, 99, 255, 0.2);
+            border-radius: 12px;
+            padding: 15px;
+            width: 300px;
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+        }
+
+        .info-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(108, 99, 255, 0.2);
+        }
+
+        .info-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: white;
+            margin: 0;
+        }
+
+        .info-close {
+            background: transparent;
+            border: none;
+            color: rgba(255, 255, 255, 0.7);
+            cursor: pointer;
+            padding: 5px;
+            transition: color 0.3s ease;
+        }
+
+        .info-close:hover {
+            color: white;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .info-item {
+            background: rgba(108, 99, 255, 0.05);
+            border: 1px solid rgba(108, 99, 255, 0.1);
+            border-radius: 8px;
+            padding: 10px;
+        }
+
+        .info-label {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: white;
+        }
+
+        .info-value.positive {
+            color: #00f2ff;
+        }
+
+        .info-value.negative {
+            color: #ff6b6b;
+        }
+
+        @media (max-width: 768px) {
+            .chart-info-panel {
+                top: auto;
+                bottom: 20px;
+                right: 10px;
+                left: 10px;
+                width: auto;
+            }
+
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(16, 16, 32, 0.95);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(108, 99, 255, 0.2);
+            width: 90%;
+            max-width: 400px;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: white;
+            margin: 0;
+        }
+
+        .modal-close {
+            background: transparent;
+            border: none;
+            color: rgba(255, 255, 255, 0.7);
+            cursor: pointer;
+            padding: 5px;
+            transition: color 0.3s ease;
+        }
+
+        .modal-close:hover {
+            color: white;
+        }
+
+        .modal-body {
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-label {
+            display: block;
+            margin-bottom: 8px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 10px;
+            background: rgba(108, 99, 255, 0.1);
+            border: 1px solid rgba(108, 99, 255, 0.2);
+            border-radius: 8px;
+            color: white;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: rgba(108, 99, 255, 0.5);
+            box-shadow: 0 0 0 2px rgba(108, 99, 255, 0.2);
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .modal-btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .modal-btn.cancel {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .modal-btn.cancel:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .modal-btn.confirm {
+            background: rgba(108, 99, 255, 0.3);
+            color: white;
+        }
+
+        .modal-btn.confirm:hover {
+            background: rgba(108, 99, 255, 0.4);
+        }
+
+        @media (max-width: 768px) {
+            .modal-content {
+                width: 95%;
+                padding: 15px;
+            }
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(16, 16, 32, 0.95);
+            border: 1px solid rgba(108, 99, 255, 0.2);
+            border-radius: 8px;
+            padding: 12px 20px;
+            color: white;
+            font-size: 0.9rem;
+            z-index: 2000;
+            display: none;
+            animation: slideIn 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .notification.success {
+            border-color: rgba(0, 242, 255, 0.3);
+        }
+
+        .notification.error {
+            border-color: rgba(255, 107, 107, 0.3);
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="stars"></div>
+    <div class="header">
+        <div class="header-left">
+            <div class="token-info">
+                <div class="token-image">
+                    <img id="tokenImage" src="" alt="Token Image">
+                </div>
+                <div class="token-details">
+                    <h1 id="tokenName" class="token-name">Loading...</h1>
+                    <div id="tokenSymbol" class="token-symbol">Loading...</div>
+                </div>
+                <div class="token-actions">
+                    <div class="token-sol-input">
+                        <input type="number" id="tokenBuyAmount" value="0.01" step="0.001" min="0.01">
+                        <img src="https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png" alt="SOL">
+                    </div>
+                    <button class="token-btn buy" onclick="executeQuickBuy()">
+                        <i class="fas fa-arrow-up"></i>
+                        Buy
+                    </button>
+                    <button class="token-btn sell" onclick="executeQuickSell()">
+                        <i class="fas fa-arrow-down"></i>
+                        Sell
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="time-selector">
+            <button class="time-btn active" data-time="1m">1m</button>
+            <button class="time-btn" data-time="5m">5m</button>
+            <button class="time-btn" data-time="15m">15m</button>
+            <button class="time-btn" data-time="1h">1h</button>
+            <button class="time-btn" data-time="4h">4h</button>
+            <button class="time-btn" data-time="1d">1d</button>
+        </div>
+    </div>
+    <div class="loading">
+        <div class="loading-spinner"></div>
+        <div>Loading chart...</div>
+    </div>
+    <div class="chart-layout">
+        <div class="chart-main">
+            <div class="chart-frame">
+                <iframe id="chartFrame" frameborder="0"></iframe>
+            </div>
+        </div>
+        <div class="market-info-section">
+            <div class="market-info-grid">
+                <div class="market-info-item">
+                    <div class="market-info-label">Market Cap</div>
+                    <div class="market-info-value" id="marketCap">$0</div>
+                </div>
+                <div class="market-info-item">
+                    <div class="market-info-label">24h Volume</div>
+                    <div class="market-info-value" id="volume24h">$0</div>
+                </div>
+                <div class="market-info-item">
+                    <div class="market-info-label">Price Change 24h</div>
+                    <div class="market-info-value" id="priceChange24h">0%</div>
+                </div>
+                <div class="market-info-item">
+                    <div class="market-info-label">24h High</div>
+                    <div class="market-info-value" id="high24h">$0</div>
+                </div>
+                <div class="market-info-item">
+                    <div class="market-info-label">24h Low</div>
+                    <div class="market-info-value" id="low24h">$0</div>
+                </div>
+                <div class="market-info-item">
+                    <div class="market-info-label">Liquidity</div>
+                    <div class="market-info-value" id="liquidity">$0</div>
+                </div>
+            </div>
+            <div class="trades-section">
+                <div class="trades-column">
+                    <div class="trades-header">
+                        <h3 class="trades-title">Recent Buys</h3>
+                    </div>
+                    <div class="trades-list" id="buyTrades">
+                        <!-- Buy trades will be inserted here -->
+                    </div>
+                </div>
+                <div class="trades-column">
+                    <div class="trades-header">
+                        <h3 class="trades-title">Recent Sells</h3>
+                    </div>
+                    <div class="trades-list" id="sellTrades">
+                        <!-- Sell trades will be inserted here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="chart-controls">
+        <button class="chart-btn info" onclick="toggleInfoPanel()">
+            <i class="fas fa-info-circle"></i>
+            Info
+        </button>
+        <div class="chart-sol-input">
+            <input type="number" id="chartBuyAmount" value="0.008" step="0.001" min="0.008">
+            <img src="https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png" alt="SOL">
+        </div>
+        <button class="chart-btn buy" onclick="executeQuickBuy()">
+            <i class="fas fa-arrow-up"></i>
+            Buy
+        </button>
+        <button class="chart-btn sell" onclick="executeQuickSell()">
+            <i class="fas fa-arrow-down"></i>
+            Sell
+        </button>
+        <button class="chart-btn solscan" onclick="openSolscan()">
+            <i class="fas fa-external-link-alt"></i>
+            Solscan
+        </button>
+    </div>
+
+    <!-- Buy Modal -->
+    <div class="modal" id="buyModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Fast Buy</h3>
+                <button class="modal-close" onclick="closeBuyModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="input-group">
+                    <label class="input-label">Amount in SOL</label>
+                    <input type="number" class="input-field" id="buySolAmount" value="0.1" step="0.1" min="0.1">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn cancel" onclick="closeBuyModal()">Cancel</button>
+                <button class="modal-btn confirm" onclick="executeBuy()">Buy Now</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sell Modal -->
+    <div class="modal" id="sellModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Fast Sell</h3>
+                <button class="modal-close" onclick="closeSellModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>This will sell all your tokens. Are you sure?</p>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn cancel" onclick="closeSellModal()">Cancel</button>
+                <button class="modal-btn confirm" onclick="executeSell()">Sell All</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="notification" id="notification"></div>
+
+    <script>
+        // Create stars dynamically
+        const starsContainer = document.querySelector('.stars');
+        for (let i = 0; i < 200; i++) {
+            const star = document.createElement('div');
+            star.className = 'star';
+            star.style.left = `${Math.random() * 100}%`;
+            star.style.top = `${Math.random() * 100}%`;
+            star.style.animationDelay = `${Math.random() * 2}s`;
+            starsContainer.appendChild(star);
+        }
+
+        // Get token address from URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const tokenAddress = urlParams.get('address');
+        const tokenName = urlParams.get('name');
+        const tokenSymbol = urlParams.get('symbol');
+        const tokenImage = urlParams.get('image');
+
+        // Update token info in header
+        document.getElementById('tokenName').textContent = tokenName || 'Unknown Token';
+        document.getElementById('tokenSymbol').textContent = tokenSymbol || 'UNKNOWN';
+        if (tokenImage) {
+            document.getElementById('tokenImage').src = tokenImage;
+        }
+
+        // Load DexScreener chart
+        const chartFrame = document.getElementById('chartFrame');
+        const loadingElement = document.querySelector('.loading');
+        
+        // DexScreener chart URL with token address and minimal UI
+        const chartUrl = `https://dexscreener.com/solana/${tokenAddress}?embed=1&theme=dark&minimal=1&trades=0&info=0`;
+        
+        chartFrame.src = chartUrl;
+        
+        // Hide loading when chart is loaded
+        chartFrame.onload = () => {
+            loadingElement.style.display = 'none';
+            // Additional cleanup after chart loads
+            const iframe = document.getElementById('chartFrame');
+            if (iframe.contentDocument) {
+                const elements = iframe.contentDocument.querySelectorAll('header, footer, .header, .footer, .controls, .price-display, .branding, .logo, .powered-by, .dex-screener, .chart-header, .chart-footer, .chart-sidebar, .chart-info, .tradingview-widget-copyright, .trades-panel, .info-panel');
+                elements.forEach(el => {
+                    if (el) el.style.display = 'none';
+                });
+            }
+        };
+
+        // Function to format numbers
+        function formatNumber(num) {
+            if (num >= 1e9) return (num / 1e9).toFixed(2) + 'B';
+            if (num >= 1e6) return (num / 1e6).toFixed(2) + 'M';
+            if (num >= 1e3) return (num / 1e3).toFixed(2) + 'K';
+            return num.toFixed(2);
+        }
+
+        // Function to update price display
+        function updatePriceDisplay(price, change) {
+            const priceElement = document.getElementById('currentPrice');
+            const changeElement = document.getElementById('priceChange');
+            
+            priceElement.textContent = `$${Number(price).toFixed(6)}`;
+            
+            const changeValue = Number(change);
+            const changeIcon = changeValue >= 0 ? 'fa-arrow-up' : 'fa-arrow-down';
+            const changeClass = changeValue >= 0 ? 'positive' : 'negative';
+            
+            changeElement.innerHTML = `
+                <i class="fas ${changeIcon}"></i>
+                <span>${Math.abs(changeValue).toFixed(2)}%</span>
+            `;
+            changeElement.className = `price-change ${changeClass}`;
+        }
+
+        // Function to update token stats
+        async function updateTokenStats() {
+            try {
+                const response = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${tokenAddress}`);
+                const data = await response.json();
+                
+                if (data.pairs && data.pairs.length > 0) {
+                    const pair = data.pairs[0];
+                    
+                    // Update market cap
+                    document.getElementById('marketCap').textContent = `$${formatNumber(Number(pair.fdv))}`;
+                    
+                    // Update volume
+                    document.getElementById('volume24h').textContent = `$${formatNumber(Number(pair.volume.h24))}`;
+                    
+                    // Update high/low
+                    document.getElementById('high24h').textContent = `$${Number(pair.priceUsd24hHigh).toFixed(6)}`;
+                    document.getElementById('low24h').textContent = `$${Number(pair.priceUsd24hLow).toFixed(6)}`;
+                    
+                    // Update price change
+                    updatePriceChangeDisplay(pair.priceChange.h24);
+                    
+                    // Update liquidity
+                    document.getElementById('liquidity').textContent = `$${formatNumber(Number(pair.liquidity.usd))}`;
+                }
+            } catch (error) {
+                console.error('Error fetching token stats:', error);
+            }
+        }
+
+        // Update stats every 30 seconds
+        updateTokenStats();
+        setInterval(updateTokenStats, 30000);
+
+        // Function to toggle chart theme
+        function toggleTheme() {
+            const currentUrl = chartFrame.src;
+            const isDark = currentUrl.includes('theme=dark');
+            const newUrl = isDark ? 
+                currentUrl.replace('theme=dark', 'theme=light') :
+                currentUrl.replace('theme=light', 'theme=dark');
+            chartFrame.src = newUrl;
+        }
+
+        // Function to toggle info panel
+        function toggleInfoPanel() {
+            const panel = document.querySelector('.chart-info-panel');
+            panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+        }
+
+        // Function to toggle price panel
+        function togglePrice() {
+            const priceBtn = document.querySelector('.chart-btn.price');
+            priceBtn.classList.toggle('active');
+            // Add your price panel toggle logic here
+        }
+
+        // Function to open in DexScreener
+        function openDexScreener() {
+            const externalBtn = document.querySelector('.chart-btn.external');
+            externalBtn.classList.add('active');
+            setTimeout(() => externalBtn.classList.remove('active'), 200);
+            window.open(`https://dexscreener.com/solana/${tokenAddress}`, '_blank');
+        }
+
+        // Add time selector functionality
+        document.querySelectorAll('.time-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Remove active class from all buttons
+                document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('active'));
+                // Add active class to clicked button
+                btn.classList.add('active');
+                
+                // Update chart timeframe
+                const time = btn.dataset.time;
+                const iframe = document.getElementById('chartFrame');
+                const currentUrl = iframe.src;
+                const newUrl = currentUrl.replace(/interval=\d+[mhd]/, `interval=${time}`);
+                iframe.src = newUrl;
+            });
+        });
+
+        // Function to update price change display
+        function updatePriceChangeDisplay(change) {
+            const element = document.getElementById('priceChange24h');
+            const changeValue = Number(change);
+            element.textContent = `${changeValue >= 0 ? '+' : ''}${changeValue.toFixed(2)}%`;
+            element.className = `info-value ${changeValue >= 0 ? 'positive' : 'negative'}`;
+        }
+
+        // Function to format time
+        function formatTime(timestamp) {
+            const date = new Date(timestamp);
+            const now = new Date();
+            const diff = now - date;
+            
+            if (diff < 60000) return 'Just now';
+            if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
+            if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
+            return date.toLocaleDateString();
+        }
+
+        // Function to update trades
+        async function updateTrades() {
+            try {
+                const response = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${tokenAddress}`);
+                const data = await response.json();
+                
+                if (data.pairs && data.pairs.length > 0) {
+                    const pair = data.pairs[0];
+                    const trades = pair.trades || [];
+                    
+                    // Sort trades by timestamp
+                    trades.sort((a, b) => b.timestamp - a.timestamp);
+                    
+                    // Separate buy and sell trades
+                    const buyTrades = trades.filter(trade => trade.type === 'buy').slice(0, 5);
+                    const sellTrades = trades.filter(trade => trade.type === 'sell').slice(0, 5);
+                    
+                    // Update buy trades
+                    const buyTradesList = document.getElementById('buyTrades');
+                    buyTradesList.innerHTML = buyTrades.map(trade => `
+                        <div class="trade-item buy-trade">
+                            <div class="trade-price">$${Number(trade.priceUsd).toFixed(6)}</div>
+                            <div class="trade-amount">${Number(trade.amount).toFixed(2)} ${pair.baseToken.symbol}</div>
+                            <div class="trade-time">${formatTime(trade.timestamp)}</div>
+                        </div>
+                    `).join('');
+                    
+                    // Update sell trades
+                    const sellTradesList = document.getElementById('sellTrades');
+                    sellTradesList.innerHTML = sellTrades.map(trade => `
+                        <div class="trade-item sell-trade">
+                            <div class="trade-price">$${Number(trade.priceUsd).toFixed(6)}</div>
+                            <div class="trade-amount">${Number(trade.amount).toFixed(2)} ${pair.baseToken.symbol}</div>
+                            <div class="trade-time">${formatTime(trade.timestamp)}</div>
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Error fetching trades:', error);
+            }
+        }
+
+        // Update trades every 10 seconds
+        updateTrades();
+        setInterval(updateTrades, 10000);
+
+        // Function to open Solscan
+        function openSolscan() {
+            const solscanBtn = document.querySelector('.chart-btn.solscan');
+            solscanBtn.classList.add('active');
+            setTimeout(() => solscanBtn.classList.remove('active'), 200);
+            window.open(`https://solscan.io/token/${tokenAddress}`, '_blank');
+        }
+
+        // Buy Modal Functions
+        function showBuyModal() {
+            document.getElementById('buyModal').style.display = 'block';
+        }
+
+        function closeBuyModal() {
+            document.getElementById('buyModal').style.display = 'none';
+        }
+
+        function executeBuy() {
+            const solAmount = document.getElementById('buySolAmount').value;
+            if (solAmount < 0.1) {
+                alert('Minimum amount is 0.1 SOL');
+                return;
+            }
+            
+            // Update the badge with the new amount
+            document.getElementById('buyAmount').textContent = `${solAmount} SOL`;
+            
+            // Close the modal
+            closeBuyModal();
+            
+            // Execute the buy through Jupiter with simplified URL format
+            const jupiterUrl = `https://jup.ag/swap/SOL-${tokenSymbol}?amount=${solAmount}&wallet=phantom`;
+            window.open(jupiterUrl, '_blank');
+        }
+
+        // Sell Modal Functions
+        function showSellModal() {
+            document.getElementById('sellModal').style.display = 'block';
+        }
+
+        function closeSellModal() {
+            document.getElementById('sellModal').style.display = 'none';
+        }
+
+        function executeSell() {
+            // Close the modal
+            closeSellModal();
+            
+            // Execute the sell through Jupiter with simplified URL format
+            const jupiterUrl = `https://jup.ag/swap/${tokenSymbol}-SOL?wallet=phantom`;
+            window.open(jupiterUrl, '_blank');
+        }
+
+        // Close modals when clicking outside
+        window.onclick = function(event) {
+            const buyModal = document.getElementById('buyModal');
+            const sellModal = document.getElementById('sellModal');
+            
+            if (event.target === buyModal) {
+                closeBuyModal();
+            }
+            if (event.target === sellModal) {
+                closeSellModal();
+            }
+        }
+
+        // Function to show notification
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.style.display = 'block';
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => {
+                    notification.style.display = 'none';
+                }, 300);
+            }, 3000);
+        }
+
+        // Function to execute quick buy
+        async function executeQuickBuy() {
+            const solAmount = document.getElementById('tokenBuyAmount').value;
+            const buyBtn = document.querySelector('.token-btn.buy');
+            
+            if (solAmount < 0.008) {
+                showNotification('Minimum amount is 0.008 SOL', 'error');
+                return;
+            }
+
+            try {
+                buyBtn.classList.add('loading');
+                
+                // Execute the buy through Jupiter with direct integration
+                const jupiterUrl = `https://jup.ag/swap?inputMint=So11111111111111111111111111111111111111112&outputMint=${tokenAddress}&amount=${solAmount * 1e9}&slippageBps=100&wallet=phantom&theme=dark`;
+                
+                // Use Jupiter's API to execute the trade
+                const response = await fetch(jupiterUrl);
+                const data = await response.json();
+                
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+                
+                showNotification('Buy order executed successfully!');
+                
+            } catch (error) {
+                console.error('Buy error:', error);
+                showNotification(error.message || 'Failed to execute buy order', 'error');
+            } finally {
+                buyBtn.classList.remove('loading');
+            }
+        }
+
+        // Function to execute quick sell
+        async function executeQuickSell() {
+            const sellBtn = document.querySelector('.token-btn.sell');
+            
+            try {
+                sellBtn.classList.add('loading');
+                
+                // Execute the sell through Jupiter with direct integration
+                const jupiterUrl = `https://jup.ag/swap?inputMint=${tokenAddress}&outputMint=So11111111111111111111111111111111111111112&slippageBps=100&wallet=phantom&theme=dark`;
+                
+                // Use Jupiter's API to execute the trade
+                const response = await fetch(jupiterUrl);
+                const data = await response.json();
+                
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+                
+                showNotification('Sell order executed successfully!');
+                
+            } catch (error) {
+                console.error('Sell error:', error);
+                showNotification(error.message || 'Failed to execute sell order', 'error');
+            } finally {
+                sellBtn.classList.remove('loading');
+            }
+        }
+
+        // Update the input field minimum value
+        document.getElementById('tokenBuyAmount').min = '0.008';
+        document.getElementById('tokenBuyAmount').value = '0.008';
+
+        // Function to start monitoring
+        function startMonitoring() {
+            // Update token stats immediately
+            updateTokenStats();
+            updateTrades();
+            
+            // Set up intervals for continuous updates
+            setInterval(updateTokenStats, 30000); // Update stats every 30 seconds
+            setInterval(updateTrades, 10000); // Update trades every 10 seconds
+        }
+
+        // Start monitoring when the page loads
+        document.addEventListener('DOMContentLoaded', startMonitoring);
+    </script>
+</body>
+</html> 

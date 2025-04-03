@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LightX - Solana Trading Hub</title>
+  <meta name="description" content="Futuristic trading platform for Solana tokens with lightning-fast trading capabilities">
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+  <div class="stars"></div>
+  <div class="nebula"></div>
+  <div class="container">
+    <header>
+      <div class="logo">
+        <div class="logo-glow"></div>
+        <h1>LightX</h1>
+        <p>Solana Trading Hub</p>
+      </div>
+      <div class="wallet-section">
+        <button id="connectWallet" class="connect-btn">
+          <i class="fas fa-wallet"></i>
+          <span>Connect Phantom</span>
+        </button>
+        <div id="walletAddress" class="wallet-address"></div>
+      </div>
+    </header>
+
+    <div class="status-bar">
+      <div class="status">
+        <div class="status-dot"></div>
+        <span class="status-text">Disconnected</span>
+      </div>
+      
+      <div class="token-sources">
+        <div class="source-title">Token Sources:</div>
+        <div class="source-options">
+          <label class="source-option">
+            <input type="checkbox" id="sourceRayFee" checked>
+            <span>RayFee</span>
+          </label>
+          <label class="source-option">
+            <input type="checkbox" id="sourcePumpFun" checked>
+            <span>PumpFun</span>
+          </label>
+          <label class="source-option">
+            <input type="checkbox" id="sourceMoonshot" checked>
+            <span>Moonshot</span>
+          </label>
+          <label class="source-option">
+            <input type="checkbox" id="sourceRaydium" checked>
+            <span>Raydium</span>
+          </label>
+          <label class="source-option">
+            <input type="checkbox" id="sourceJupiter" checked>
+            <span>Jupiter</span>
+          </label>
+        </div>
+      </div>
+      
+      <div class="monitoring-controls">
+        <button id="startMonitoring" class="monitor-btn start-btn">
+          <i class="fas fa-play"></i>
+          <span>Start Monitoring</span>
+        </button>
+        <button id="stopMonitoring" class="monitor-btn stop-btn" disabled>
+          <i class="fas fa-stop"></i>
+          <span>Stop Monitoring</span>
+        </button>
+      </div>
+    </div>
+
+    <main>
+      <section class="token-list-container">
+        <h2><i class="fas fa-bolt"></i> Trade Tokens</h2>
+        
+        <div class="token-list-wrapper">
+          <div class="loading initial-load">
+            <div class="loading-spinner"></div>
+            <span class="loading-text">Loading Tokens<span class="loading-dots">...</span></span>
+          </div>
+          <div class="token-list" id="tokenList">
+            <!-- Token cards will be added here dynamically -->
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Token detail modal -->
+    <div id="tokenModal" class="modal">
+      <div class="modal-content">
+        <span class="close">&times;</span>
+        <div id="tokenDetails">
+          <!-- Token details will be populated here -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Debug panel (hidden by default) -->
+    <div class="debug-controls">
+      <button id="toggleDebug" class="toggle-debug-btn">
+        <i class="fas fa-bug"></i>
+      </button>
+      <div id="debugPanel" style="display: none;">
+        <h3>Debug Information</h3>
+        <div id="debugInfo" class="debug-content">Loading...</div>
+        <div class="debug-actions">
+          <button id="refreshDebug">Refresh</button>
+          <button id="forceReconnect">Reconnect</button>
+          <button id="clearStorage">Clear Storage</button>
+          <button id="testBuffer">Test Buffer</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-content">
+      <p>© 2025 LightX, All rights reserved.</p>
+      <div class="socials">
+        <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+        <a href="#" aria-label="Discord"><i class="fab fa-discord"></i></a>
+        <a href="#" aria-label="Telegram"><i class="fab fa-telegram"></i></a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="js/wallet.js"></script>
+  <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+  <!-- Add Buffer polyfill for browser environment -->
+  <script src="https://cdn.jsdelivr.net/npm/buffer@6.0.3/index.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@solana/web3.js@1.87.6/lib/index.iife.min.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    // Create stars dynamically
+    const starsContainer = document.querySelector('.stars');
+    for (let i = 0; i < 200; i++) {
+      const star = document.createElement('div');
+      star.className = 'star';
+      star.style.left = `${Math.random() * 100}%`;
+      star.style.top = `${Math.random() * 100}%`;
+      star.style.animationDelay = `${Math.random() * 2}s`;
+      starsContainer.appendChild(star);
+    }
+
+    // Debug panel functionality
+    document.addEventListener('DOMContentLoaded', () => {
+      const toggleDebugBtn = document.getElementById('toggleDebug');
+      const debugPanel = document.getElementById('debugPanel');
+      const debugInfo = document.getElementById('debugInfo');
+      const refreshDebugBtn = document.getElementById('refreshDebug');
+      const forceReconnectBtn = document.getElementById('forceReconnect');
+      const clearStorageBtn = document.getElementById('clearStorage');
+      
+      // Toggle debug panel
+      if (toggleDebugBtn && debugPanel) {
+        toggleDebugBtn.addEventListener('click', () => {
+          const isVisible = debugPanel.style.display !== 'none';
+          debugPanel.style.display = isVisible ? 'none' : 'block';
+          
+          if (!isVisible) {
+            updateDebugInfo();
+          }
+        });
+      }
+      
+      // Refresh debug info
+      if (refreshDebugBtn) {
+        refreshDebugBtn.addEventListener('click', updateDebugInfo);
+      }
+      
+      // Force reconnect
+      if (forceReconnectBtn) {
+        forceReconnectBtn.addEventListener('click', async () => {
+          try {
+            if (window.phantomWallet) {
+              // Disconnect first if connected
+              if (window.phantomWallet.isConnected()) {
+                await window.phantomWallet.disconnect();
+              }
+              
+              // Reset provider
+              window.phantomWallet.provider = null;
+              window.phantomWallet.connectionAttempts = 0;
+              
+              // Try to detect and connect
+              await window.phantomWallet.detectProvider(5);
+              const result = await window.phantomWallet.connect();
+              
+              alert(result ? 'Reconnection successful!' : 'Reconnection failed, check console for details');
+              updateDebugInfo();
+            } else {
+              alert('Wallet integration not initialized');
+            }
+          } catch (err) {
+            console.error('Force reconnect error:', err);
+            alert(`Reconnection error: ${err.message}`);
+          }
+        });
+      }
+      
+      // Clear storage
+      if (clearStorageBtn) {
+        clearStorageBtn.addEventListener('click', () => {
+          try {
+            localStorage.removeItem('phantomConnection');
+            alert('Local storage cleared. Please refresh the page.');
+            updateDebugInfo();
+          } catch (err) {
+            console.error('Clear storage error:', err);
+            alert(`Error clearing storage: ${err.message}`);
+          }
+        });
+      }
+      
+      // Function to update debug info
+      function updateDebugInfo() {
+        if (debugInfo) {
+          let info = '<strong>Wallet Status:</strong><br>';
+          
+          try {
+            if (window.phantomWallet) {
+              const walletState = window.phantomWallet.getState();
+              
+              info += `Provider Detected: ${walletState.providerDetected ? '✅' : '❌'}<br>`;
+              info += `Connected: ${walletState.isConnected ? '✅' : '❌'}<br>`;
+              info += `Public Key: ${walletState.publicKey || 'N/A'}<br>`;
+              info += `Connection Attempts: ${walletState.connectionAttempts || 0}<br>`;
+              
+              // Local storage data
+              info += '<br><strong>Local Storage:</strong><br>';
+              const storedConnection = localStorage.getItem('phantomConnection');
+              info += `Stored Connection: ${storedConnection ? '✅' : '❌'}<br>`;
+              
+              if (storedConnection) {
+                try {
+                  const parsed = JSON.parse(storedConnection);
+                  info += `Stored Public Key: ${parsed.publicKey || 'N/A'}<br>`;
+                  info += `Last Connected: ${parsed.timestamp ? new Date(parsed.timestamp).toLocaleString() : 'N/A'}<br>`;
+                } catch (e) {
+                  info += `Error parsing stored connection: ${e.message}<br>`;
+                }
+              }
+              
+              // Socket connection status
+              info += '<br><strong>Socket Connection:</strong><br>';
+              info += `Socket Connected: ${window.socketConnected ? '✅' : '❌'}<br>`;
+            } else {
+              info += 'Wallet integration not initialized<br>';
+            }
+          } catch (err) {
+            info += `Error fetching debug info: ${err.message}<br>`;
+            console.error('Debug info error:', err);
+          }
+          
+          debugInfo.innerHTML = info;
+        }
+      }
+      
+      // Test Buffer functionality
+      const testBufferBtn = document.getElementById('testBuffer');
+      if (testBufferBtn) {
+        testBufferBtn.addEventListener('click', () => {
+          try {
+            const results = {
+              windowBuffer: typeof window.Buffer !== 'undefined',
+              bufferModule: typeof window.buffer !== 'undefined' && typeof window.buffer.Buffer !== 'undefined',
+              atob: typeof window.atob === 'function'
+            };
+            
+            console.log('Buffer Functionality Test Results:', results);
+            alert(`Buffer Functionality Test Results:
+- window.Buffer: ${results.windowBuffer}
+- buffer.Buffer module: ${results.bufferModule}
+- window.atob: ${results.atob}`);
+          } catch (err) {
+            console.error('Buffer test error:', err);
+            alert(`Buffer test error: ${err.message}`);
+          }
+        });
+      }
+    });
+  </script>
+</body>
+</html> 
