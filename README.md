@@ -1,6 +1,6 @@
-# TrakorAi - Solana Token Monitor
+# LightX - Solana Token Monitor
 
-TrakorAi is a web-based application for monitoring new Solana tokens in real-time. It detects token creation events on the Solana blockchain and provides comprehensive information about each token, including safety scores, price data, and market statistics.
+LightX is a web-based application for monitoring new Solana tokens in real-time. It detects token creation events on the Solana blockchain and provides comprehensive information about each token, including safety scores, price data, and market statistics.
 
 ## Features
 
@@ -21,8 +21,8 @@ TrakorAi is a web-based application for monitoring new Solana tokens in real-tim
 
 1. Clone the repository:
    ```
-   git clone https://github.com/yourusername/TrakorAi.git
-   cd TrakorAi
+   git clone https://github.com/LightxSolami/lightx.git
+   cd Lightx
    ```
 
 2. Install dependencies:
@@ -74,7 +74,7 @@ TrakorAi is a web-based application for monitoring new Solana tokens in real-tim
 
 ### Architecture
 
-TrakorAi uses a modern web stack:
+LightX uses a modern web stack:
 
 - **Backend**:
   - Node.js with Express for the API server
@@ -106,3 +106,126 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - [BirdEye](https://birdeye.so/) for token price data
 - [DexScreener](https://dexscreener.com/) for market data
 - [RugCheck](https://rugcheck.xyz/) for token safety analysis
+
+# LightX Launchpad Coming soon !!
+
+A modern token launch platform for Solana that implements bonding curves and King of the Hill mechanics.
+
+## Features
+
+- **Bonding Curves**: Dynamic token pricing based on supply and demand
+  - Linear bonding curve: Price increases linearly with each token minted
+  - Exponential bonding curve: Price increases exponentially with each token minted
+
+- **King of the Hill**: First contributor to reach 50 SOL becomes the King of the Hill
+  - Special rewards and privileges for the King of the Hill
+  - Automatic Raydium listing when threshold is reached
+
+- **Raydium Integration**: Automatic listing on Raydium DEX
+  - Liquidity pool creation
+  - Market setup
+  - Initial liquidity provision
+
+- **Real-time Updates**: Live tracking of launchpad status
+  - Total raised
+  - Current price
+  - Tokens minted
+  - King of the Hill status
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js >= 18.0.0
+- Solana CLI tools
+- Phantom or other Solana wallet
+
+### Installation
+
+1. Clone the repository:
+```bash
+git clone https://github.com/LightxSolami/lightx.git
+cd Lightx
+```
+
+2. Install dependencies:
+```bash
+npm install
+```
+
+3. Build the project:
+```bash
+npm run build
+```
+
+4. Start the server:
+```bash
+npm start
+```
+
+### Development
+
+Run the development server with hot reload:
+```bash
+npm run dev
+```
+
+## Usage
+
+### Creating a Launchpad
+
+1. Navigate to the launchpad page
+2. Click "Create New Launchpad"
+3. Fill in the required information:
+   - Token Name
+   - Token Symbol
+   - Description
+   - Initial Supply
+   - Bonding Curve Type
+   - Social Links (optional)
+
+### Contributing to a Launchpad
+
+1. Select a launchpad from the list
+2. Click "Contribute"
+3. Enter your contribution amount in SOL
+4. Connect your wallet
+5. Confirm the transaction
+
+### King of the Hill
+
+- The first contributor to reach 50 SOL becomes the King of the Hill
+- The King of the Hill receives special rewards and privileges
+- The token is automatically listed on Raydium when the threshold is reached
+
+## API Endpoints
+
+### Launchpad Management
+
+- `GET /api/launchpads` - Get all launchpads
+- `POST /api/launchpad/create` - Create a new launchpad
+- `GET /api/launchpad/:id` - Get launchpad details
+- `POST /api/launchpad/:id/contribute` - Contribute to a launchpad
+- `GET /api/launchpad/:id/stats` - Get launchpad statistics
+- `GET /api/launchpad/:id/king-of-hill` - Get King of the Hill status
+- `GET /api/launchpad/:id/bonding-curve` - Get bonding curve information
+
+## WebSocket Events
+
+- `launchpadUpdate` - Real-time updates for launchpad status
+- `launchpadCreated` - Notification when a new launchpad is created
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+Server is running on port 3000
+Visit http://localhost:3000 to access the application
